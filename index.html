@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Scientific Calculator</title>
+    <style>
+        :root {
+            --bg-primary: #f0f4f8;
+            --bg-secondary: #e6eaf0;
+            --text-primary: #1a2b3c;
+            --text-secondary: #4a5568;
+            --accent-primary: #3182ce;
+            --accent-secondary: #2c5282;
+            --success: #48bb78;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, var(--bg-primary), var(--bg-secondary));
+            padding: 20px;
+        }
+
+        .calculator {
+            background-color: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+            padding: 20px;
+        }
+
+        .title {
+            text-align: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: var(--text-primary);
+        }
+
+        .display {
+            background-color: var(--bg-secondary);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            text-align: right;
+        }
+
+        .display-expression {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-bottom: 5px;
+            height: 1.2rem;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .display-result {
+            color: var(--text-primary);
+            font-size: 2rem;
+            font-weight: bold;
+        }
+
+        .keypad {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+
+        .button {
+            background-color: var(--bg-secondary);
+            border: none;
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-size: 1.2rem;
+            padding: 15px;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s;
+        }
+
+        .button:hover {
+            background-color: var(--accent-primary);
+            color: white;
+        }
+
+        .button:active {
+            transform: scale(0.95);
+        }
+
+        .button-operator {
+            background-color: var(--accent-secondary);
+            color: white;
+        }
+
+        .button-function {
+            background-color: var(--accent-primary);
+            color: white;
+        }
+
+        .button-equals {
+            background-color: var(--success);
+            color: white;
+            grid-column: span 2;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="calculator">
+        <div class="title">Advanced Calculator</div>
+        <div class="display">
+            <div class="display-expression" id="expression-display"></div>
+            <div class="display-result" id="result-display">0</div>
+        </div>
+
+        <div class="keypad">
+            <!-- Function Buttons -->
+            <button class="button button-function">sin</button>
+            <button class="button button-function">cos</button>
+            <button class="button button-function">tan</button>
+            <button class="button button-function">log</button>
+            <button class="button button-function">ln</button>
+            <button class="button button-function">√</button>
+
+            <!-- Clear and Backspace -->
+            <button class="button button-operator">C</button>
+            <button class="button button-operator">⌫</button>
+
+            <!-- Digits and Decimal -->
+            <button class="button">7</button>
+            <button class="button">8</button>
+            <button class="button">9</button>
+            <button class="button button-operator">÷</button>
+
+            <button class="button">4</button>
+            <button class="button">5</button>
+            <button class="button">6</button>
+            <button class="button button-operator">×</button>
+
+            <button class="button">1</button>
+            <button class="button">2</button>
+            <button class="button">3</button>
+            <button class="button button-operator">-</button>
+
+            <button class="button">0</button>
+            <button class="button">.</button>
+            <button class="button button-equals">=</button>
+            <button class="button button-operator">+</button>
+        </div>
+    </div>
+
+    <script>
+        class Calculator {
+            constructor() {
+                this.resultDisplay = document.getElementById('result-display');
+                this.expressionDisplay = document.getElementById('expression-display');
+
+                this.currentExpression = '';
+                this.justCalculated = false;
+
+                this.setupEventListeners();
+            }
+
+            setupEventListeners() {
+                document.querySelectorAll('.button').forEach(btn => {
+                    btn.addEventListener('click', () => this.handleInput(btn.textContent));
+                });
+            }
+
+            handleInput(value) {
+                if (this.justCalculated && '0123456789'.includes(value)) {
+                    this.clear();
+                    this.justCalculated = false;
+                }
+
+                switch (value) {
+                    case 'C':
+                        this.clear();
+                        break;
+                    case '⌫':
+                        this.backspace();
+                        break;
+                    case '=':
+                        this.calculate();
+                        break;
+                    case 'sin':
+                    case 'cos':
+                    case 'tan':
+                    case 'log':
+                    case 'ln':
+                    case '√':
+                        this.applyScientificFunction(value);
+                        break;
+                    default:
+                        this.appendToDisplay(value);
+                }
+            }
+
+            appendToDisplay(value) {
+                if (this.resultDisplay.textContent === '0' || this.justCalculated) {
+                    this.resultDisplay.textContent = value === '.' ? '0.' : value;
+                    this.justCalculated = false;
+                } else {
+                    this.resultDisplay.textContent += value;
+                }
+
+                this.currentExpression += value;
+                this.expressionDisplay.textContent = this.currentExpression;
+            }
+
+            clear() {
+                this.resultDisplay.textContent = '0';
+                this.expressionDisplay.textContent = '';
+                this.currentExpression = '';
+                this.justCalculated = false;
+            }
+
+            backspace() {
+                const current = this.resultDisplay.textContent;
+                if (current.length > 1) {
+                    this.resultDisplay.textContent = current.slice(0, -1);
+                } else {
+                    this.resultDisplay.textContent = '0';
+                }
+
+                this.currentExpression = this.currentExpression.slice(0, -1);
+                this.expressionDisplay.textContent = this.currentExpression;
+            }
+
+            applyScientificFunction(func) {
+                const value = parseFloat(this.resultDisplay.textContent);
+                let result;
+
+                switch (func) {
+                    case 'sin':
+                        result = Math.sin(value).toFixed(4);
+                        break;
+                    case 'cos':
+                        result = Math.cos(value).toFixed(4);
+                        break;
+                    case 'tan':
+                        result = Math.tan(value).toFixed(4);
+                        break;
+                    case 'log':
+                        result = Math.log10(value).toFixed(4);
+                        break;
+                    case 'ln':
+                        result = Math.log(value).toFixed(4);
+                        break;
+                    case '√':
+                        result = Math.sqrt(value).toFixed(4);
+                        break;
+                }
+
+                this.resultDisplay.textContent = result;
+                this.expressionDisplay.textContent = `${func}(${value}) = `;
+                this.justCalculated = true;
+            }
+
+            calculate() {
+                try {
+                    const sanitizedExpression = this.currentExpression
+                        .replace('×', '*')
+                        .replace('÷', '/');
+
+                    const result = eval(sanitizedExpression);
+                    this.resultDisplay.textContent = result.toFixed(4);
+                    this.expressionDisplay.textContent = `${this.currentExpression} = `;
+                    this.currentExpression = result.toString();
+                    this.justCalculated = true;
+                } catch (error) {
+                    this.resultDisplay.textContent = 'Error';
+                    this.expressionDisplay.textContent = '';
+                }
+            }
+        }
+
+        // Initialize the calculator
+        new Calculator();
+    </script>
+</body>
+</html>
